@@ -577,7 +577,7 @@ bool FatVolume::wipe(print_t* pr) {
     }
   }
   // Clear FATs.
-  count = fbs->fatCount*m_blocksPerFat;
+  count = cache->fbs->fatCount*m_blocksPerFat;
   lbn = m_fatStartBlock;
   for (uint32_t nb = 0; nb < count; nb++) {
     if (pr && (nb & 0XFF) == 0) {
