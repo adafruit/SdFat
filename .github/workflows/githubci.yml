@@ -11,6 +11,7 @@ jobs:
           - 'feather_esp32s2'
           - 'feather_esp32s3'
           - 'feather_rp2040'
+          - 'metro_rp2040'
           - 'metro_m0'
           - 'metro_m4'
           - 'nrf52840'
@@ -23,10 +24,10 @@ jobs:
         python-version: '3.x'
         
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Checkout adafruit/ci-arduino
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
          repository: adafruit/ci-arduino
          path: ci
