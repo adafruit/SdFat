@@ -37,6 +37,7 @@
 #define FAT12_SUPPORT 1
 #define SDFAT_FILE_TYPE 1
 #define USE_SPI_ARRAY_TRANSFER 1
+#define FILE_COPY_CONSTRUCTOR_SELECT FILE_COPY_CONSTRUCTOR_PUBLIC // backward compatible for libraries such as Adafruit_WavePlayer
 
 // This option will take around 2K of flash, skip for AVR
 #ifndef __AVR__
