@@ -38,7 +38,7 @@ const uint PIO_CLK_DIV_INIT = 2;
 
 const uint PIO_CLK_DIV_RUN = 1;
 
-const uint PIN_SDIO_UNDEFINED = 31u;
+const uint PIN_SDIO_UNDEFINED = 48u;
 
 const uint DAT_FIFO_DEPTH = 8;
 const uint CMD0_RETRIES = 10;
@@ -260,6 +260,26 @@ static void pioEnd() {
 static bool pioInit() {
   uint pin[] = {g_clkPin,      g_cmdPin,      g_dat0Pin,
                 g_dat0Pin + 1, g_dat0Pin + 2, g_dat0Pin + 3};
+
+  uint lowest_pin = pin[0];
+  uint highest_pin = pin[0];
+  uint gpio_base = 0;
+  for (uint i = 0; i < 6U; i++) {
+    if (pin[i] < lowest_pin) {
+      lowest_pin = pin[i];
+    }
+    if (pin[i] > highest_pin) {
+      highest_pin = pin[i];
+    }
+  }
+  if (highest_pin - lowest_pin > 31) {
+    sdError(PIO_ERROR_ADD_PROGRAM);
+    return false;
+  }
+  if (highest_pin > 31) {
+    gpio_base = 16;
+  }
+
   if (g_wrRespOffset < 0) {
     uint16_t patched_inst[rd_data_program.length];  // NOLINT
     struct pio_program tmp_program;
@@ -279,6 +299,9 @@ static bool pioInit() {
     } else {
       sdError(PIO_ERROR_ADD_PROGRAM);
       goto fail;
+    }
+    if (gpio_base > 0) {
+      pio_set_gpio_base(g_pio, gpio_base);
     }
     g_sm0 = pio_claim_unused_sm(g_pio, false);
     if (g_sm0 < 0) {
@@ -327,7 +350,7 @@ static bool pioInit() {
   }
 
   g_pio->input_sync_bypass |=
-      (1 << g_clkPin) | (1 << g_cmdPin) | (0XF << g_dat0Pin);
+      (1 << (g_clkPin-gpio_base)) | (1 << (g_cmdPin-gpio_base)) | (0XF << (g_dat0Pin-gpio_base));
   pio_sm_set_consecutive_pindirs(g_pio, g_sm0, g_clkPin, 1, true);
   pio_sm_set_consecutive_pindirs(g_pio, g_sm0, g_cmdPin, 1, true);
   pio_sm_set_consecutive_pindirs(g_pio, g_sm0, g_dat0Pin, 4, false);

@@ -21,7 +21,7 @@ https://learn.adafruit.com/adafruit-microsd-spi-sdio
 Wires should be short since signals can be as faster than 50 MHz.
 */
 #define DISABLE_FS_H_WARNING  // Disable warning for type File not defined.
-#include "SdFat.h"
+#include "SdFat_Adafruit_Fork.h"
 //------------------------------------------------------------------------------
 // Example GPIO definitions I use for debug. Edit for your setup.
 // Run this example as is to print the symbol for your variant.
@@ -30,6 +30,10 @@ Wires should be short since signals can be as faster than 50 MHz.
 #define RP_CLK_GPIO 18
 #define RP_CMD_GPIO 19
 #define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
+#elif defined(ARDUINO_ADAFRUIT_METRO_RP2350) || defined(ARDUINO_ADAFRUIT_FRUITJAM_RP2350)
+#define RP_CLK_GPIO 34
+#define RP_CMD_GPIO 35
+#define RP_DAT0_GPIO 36  // DAT1: GPIO37, DAT2: GPIO38, DAT3: GPIO39.
 #elif defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO_2)
 #define RP_CLK_GPIO 16
 #define RP_CMD_GPIO 17
