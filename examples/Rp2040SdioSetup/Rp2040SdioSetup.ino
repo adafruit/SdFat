@@ -26,7 +26,7 @@ Wires should be short since signals can be as faster than 50 MHz.
 // Example GPIO definitions I use for debug. Edit for your setup.
 // Run this example as is to print the symbol for your variant.
 //
-#if defined(ARDUINO_ADAFRUIT_METRO_RP2040)
+#if defined(ARDUINO_ADAFRUIT_METRO_RP2040) || defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_ADALOGGER)
 #define RP_CLK_GPIO 18
 #define RP_CMD_GPIO 19
 #define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
