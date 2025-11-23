@@ -53,6 +53,7 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #else  // HAS_TEENSY_SDIO
 #define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
 #endif  // HAS_TEENSY_SDIO
+
 //==============================================================================
 // Serial output stream
 ArduinoOutStream cout(Serial);
@@ -64,7 +65,21 @@ uint8_t sectorBuffer[512] __attribute__ ((aligned (4)));
 SdCardFactory cardFactory;
 // Pointer to generic SD card.
 SdCard* m_card = nullptr;
-//------------------------------------------------------------------------------
+
+// ============================================================================
+// ESP32 tolerant init (minimal slow-clock fallback)
+// ============================================================================
+#if defined(ARDUINO_ARCH_ESP32)
+bool esp32TolerantInit() {
+  SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
+  SdCard* slowCard = cardFactory.newCard(slowCfg);
+  if (!slowCard) return false;
+  m_card = slowCard;   // adopt the slow-initialized card
+  return true;
+}
+#endif
+// ============================================================================
+
 #define sdError(msg)                        \
   {                                         \
     cout << F("error: ") << F(msg) << endl; \
@@ -207,11 +222,33 @@ void setup() {
 
   // Select and initialize proper card driver.
   m_card = cardFactory.newCard(SD_CONFIG);
+
+#if defined(ARDUINO_ARCH_ESP32)
+  if (!m_card || m_card->errorCode()) {
+    if (!esp32TolerantInit()) {
+      sdError("card init failed.");
+      return;
+    }
+  }
+#else
   if (!m_card || m_card->errorCode()) {
     sdError("card init failed.");
     return;
   }
-
+#endif
+#if defined(ARDUINO_ARCH_ESP32)
+// Retry sectorCount() at slow SPI if fast CMD9 fails
+if (!cardSectorCount || cardSectorCount == 0) {
+  SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
+  SdCard* slowCard = cardFactory.newCard(slowCfg);
+  if (slowCard) {
+    uint32_t sc = slowCard->sectorCount();
+    if (sc > 0) {
+      m_card = slowCard;     // adopt working slow-card
+    }
+  }
+}
+#endif
   cardSectorCount = m_card->sectorCount();
   if (!cardSectorCount) {
     sdError("Get sector count failed.");
@@ -249,9 +286,17 @@ void setup() {
     cout << F("Quiting, invalid option entered.") << endl;
     return;
   }
+
+#if defined(ARDUINO_ARCH_ESP32)
+  if (c == 'E' || c == 'F') {
+    cout << F("\nESP32 detected — skipping erase (unsupported on XTSD/Zetta)\n");
+  }
+#else
   if (c == 'E' || c == 'F') {
     eraseCard();
   }
+#endif
+
   if (c == 'F' || c == 'Q') {
     formatCard();
   }
