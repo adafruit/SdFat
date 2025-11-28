@@ -1,2 +1,0 @@
-feather_rp2040
-metro_rp2040
