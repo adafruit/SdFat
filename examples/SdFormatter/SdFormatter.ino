@@ -208,8 +208,27 @@ void setup() {
   // Select and initialize proper card driver.
   m_card = cardFactory.newCard(SD_CONFIG);
   if (!m_card || m_card->errorCode()) {
-    sdError("card init failed.");
-    return;
+    // Try slow 1 MHz fallback if fast init fails
+    SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
+    SdCard* slowCard = cardFactory.newCard(slowCfg);
+    if (!slowCard || slowCard->errorCode()) {
+      sdError("card init failed.");
+      return;
+    }
+    m_card = slowCard;
+  }
+
+  // Retry sectorCount() slowly if fast attempt fails
+  uint32_t scFast = m_card->sectorCount();
+  if (!scFast) {
+    SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
+    SdCard* slowCard = cardFactory.newCard(slowCfg);
+    if (slowCard) {
+      uint32_t scSlow = slowCard->sectorCount();
+      if (scSlow > 0) {
+        m_card = slowCard;   // adopt working slow interface
+      }
+    }
   }
 
   cardSectorCount = m_card->sectorCount();
@@ -250,7 +269,12 @@ void setup() {
     return;
   }
   if (c == 'E' || c == 'F') {
-    eraseCard();
+    // XTSD/Zetta and some flash-based cards do not support SD erase commands
+    if (!m_card->erase(0, 0)) {
+      cout << F("\nErase unsupported — skipping erase step\n");
+    } else {
+      eraseCard();
+    }
   }
   if (c == 'F' || c == 'Q') {
     formatCard();
