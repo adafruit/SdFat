@@ -203,30 +203,16 @@ void setup() {
   // Read any existing Serial data.
   clearSerialInput();
 
-  // Select and initialize proper card driver.
+  // Initialize card and fall back to 1 MHz if init or sectorCount() fails
   m_card = cardFactory.newCard(SD_CONFIG);
-  if (!m_card || m_card->errorCode()) {
-    // Try slow 1 MHz fallback if fast init fails
+  if (!m_card || m_card->errorCode() || m_card->sectorCount() == 0) {
     SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
     SdCard* slowCard = cardFactory.newCard(slowCfg);
-    if (!slowCard || slowCard->errorCode()) {
+    if (!slowCard || slowCard->errorCode() || slowCard->sectorCount() == 0) {
       sdError("card init failed.");
       return;
     }
     m_card = slowCard;
-  }
-
-  // Retry sectorCount() slowly if fast attempt fails
-  uint32_t scFast = m_card->sectorCount();
-  if (!scFast) {
-    SdSpiConfig slowCfg(SD_CS_PIN, SHARED_SPI, SD_SCK_MHZ(1));
-    SdCard* slowCard = cardFactory.newCard(slowCfg);
-    if (slowCard) {
-      uint32_t scSlow = slowCard->sectorCount();
-      if (scSlow > 0) {
-        m_card = slowCard;   // adopt working slow interface
-      }
-    }
   }
 
   cardSectorCount = m_card->sectorCount();
