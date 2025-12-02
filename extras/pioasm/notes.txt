@@ -1,4 +1,4 @@
-Source:
+Source of pioasm.exe (removed from this repository):
 
 https://github.com/raspberrypi/pico-sdk-tools/releases
 
