@@ -38,6 +38,10 @@ Wires should be short since signals can be as faster than 50 MHz.
 #if defined(HAS_BUILTIN_PIO_SDIO)
 // Note: fourth paramter of SdioConfig is the PIO clkDiv with default 1.00.
 #define SD_CONFIG SdioConfig(PIN_SD_CLK, PIN_SD_CMD_MOSI, PIN_SD_DAT0_MISO)
+#elif defined(ARDUINO_ADAFRUIT_METRO_RP2040) || defined(ARDUINO_ADAFRUIT_FEATHER_RP2040_ADALOGGER)
+#define RP_CLK_GPIO 18
+#define RP_CMD_GPIO 19
+#define RP_DAT0_GPIO 20  // DAT1: GPIO21, DAT2: GPIO22, DAT3: GPIO23.
 #elif defined(ARDUINO_RASPBERRY_PI_PICO) || defined(ARDUINO_RASPBERRY_PI_PICO_2)
 // CLK: GPIO10, CMD: GPIO11, DAT[0,3]: GPIO[12, 15].
 #define SD_CONFIG SdioConfig(10u, 11u, 12u)
