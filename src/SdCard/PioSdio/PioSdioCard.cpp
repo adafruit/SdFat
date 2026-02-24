@@ -33,7 +33,7 @@
 #include "PioSdioCard.pio.h"
 //------------------------------------------------------------------------------
 // USE_DEBUG_MODE 0 - no debug, 1 - print message, 2 - Use scope/analyzer.
-#define USE_DEBUG_MODE 1
+#define USE_DEBUG_MODE 0
 
 const uint PIO_CLK_DIV_RUN = 1;
 
